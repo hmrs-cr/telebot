@@ -38,7 +38,7 @@ function Read-BotCommands
       if ($result.channel_post.chat.id -ne $global:TelegramChatId) {
          Reply -Message "You are not my master MF!" -ChatId $result.channel_post.chat.id  -ReplyToId $result.channel_post.message_id 
       } else {
-        $result.channel_post.text
+        $result.channel_post
       }
     }      
   }
@@ -51,7 +51,11 @@ function Handle-Command {
   if ($command) {
     Log "Handling Command '$command'"
     try {
-      Invoke-Expression -ErrorAction:Ignore  -Command "./telebot-commands/$command.ps1" | Out-Null
+      $messageId = $command.message_id
+      $command = $command.text.Split(" ", 2)
+      $params = $command[1]
+      $command = $command[0] -Replace '[\W]', ''
+      Invoke-Expression -ErrorAction:Ignore  -Command "./telebot-commands/$command.ps1 -Params ""$params"" -MessageId $messageId" | Out-Null
     } catch  {
       Reply -Message "Error executing command '$command'" 
       Log "Error executing command '$command': $_" 

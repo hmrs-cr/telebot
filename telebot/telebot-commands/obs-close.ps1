@@ -1,3 +1,6 @@
+param([string] $Params, [int]$messageId)
+
+
 $obsProcName = "obs64"
 
 $obsProcess = $(Get-Process -ErrorAction:Ignore $obsProcName)
@@ -8,15 +11,19 @@ if ($obsProcess)
     {
         Stop-Process $obsProcess
     }
+    
+    $count = 0;
+    while (($obsProcess = $(Get-Process -ErrorAction:Ignore $obsProcName)) && $count <= 5) {
+        Start-Sleep 1
+        $count = $count + 1
+    }
 
-    Start-Sleep 5
-    $obsProcess = $(Get-Process -ErrorAction:Ignore $obsProcName)
     if ($obsProcess) {
-        Reply -Message "OBS is still running."
+        Reply -Message "OBS is still running." -ReplyToId $messageId
     } else {
-        Reply -Message "OBS is not running anymore."
+        Reply -Message "OBS is not running anymore." -ReplyToId $messageId
     }
 }
 else {
-    Reply -Message "OBS is not running."
+    Reply -Message "OBS is not running." -ReplyToId $messageId
 }
