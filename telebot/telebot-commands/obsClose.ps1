@@ -13,7 +13,7 @@ if ($obsProcess)
     }
     
     $count = 0;
-    while (($obsProcess = $(Get-Process -ErrorAction:Ignore $obsProcName)) && $count <= 5) {
+    while (($obsProcess = $(Get-Process -ErrorAction:Ignore $obsProcName)) -and $count -le 5) {
         Start-Sleep 1
         $count = $count + 1
     }
