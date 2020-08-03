@@ -1,13 +1,2 @@
 param([string] $Params, [int]$messageId)
-
-$obsProcName = "obs64"
-
-$obsProcess = $(Get-Process -ErrorAction:Ignore $obsProcName)
-if ($obsProcess) 
-{
-    Reply -Message "OBS is running!" -ReplyToId $messageId
-} 
-else 
-{
-    Reply -Message "OBS is NOT running." -ReplyToId $messageId
-}
+Is-Process-Running -ProcTitle "OBS Studio" -ProcName "obs64" -MessageId $messageId
