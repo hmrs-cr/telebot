@@ -11,7 +11,12 @@ if ($obsProcess) {
     Start-Process -FilePath $obspath -WorkingDirectory $(Split-Path -Path $obspath)
     Start-Sleep 2
 
-    $obsProcess = $(Get-Process -ErrorAction:Ignore $obsProcName)
+    $count = 0;
+    while ((-not ($obsProcess = $(Get-Process -ErrorAction:Ignore $obsProcName))) -and $count -le 5) {
+        Start-Sleep 1
+        $count = $count + 1
+    }
+
     if($obsProcess) {
         Reply -Message "OBS is now running." -ReplyToId $messageId
     } else {
