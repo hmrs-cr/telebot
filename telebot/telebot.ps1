@@ -49,7 +49,7 @@ function Handle-Command {
   param([Parameter(ValueFromPipeline)]$command)
   
   if ($command) {
-    Log "Handling Command '$command'"
+    Log "Handling Command '$($command.text)'"
     try {
       $messageId = $command.message_id
       $command = $command.text.Split(" ", 2)
