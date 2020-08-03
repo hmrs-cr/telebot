@@ -85,3 +85,22 @@ function Close-Process {
       Reply -Message "$procTitle is not running." -ReplyToId $messageId
   }
 }
+
+
+function Is-Process-Running {
+  param(
+    [string] $procTitle,
+    [string] $procName,
+    [int] $messageId 
+  )
+
+  $process = $(Get-Process -ErrorAction:Ignore $procName)
+  if ($process) 
+  {
+      Reply -Message "$procTitle is running!" -ReplyToId $messageId
+  } 
+  else 
+  {
+      Reply -Message "$procTitle is NOT running." -ReplyToId $messageId
+  }
+}

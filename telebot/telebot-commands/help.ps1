@@ -1,3 +1,8 @@
+<#
+    .SYNOPSIS
+    Gets help.
+#>
+
 param([string] $Params, [int]$messageId)
 
 $helpText = ""

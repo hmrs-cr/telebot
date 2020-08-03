@@ -7,16 +7,26 @@ param (
 $global:TelegramBotKey = $TelegramBotKey
 $global:TelegramChatId = $TelegramChatId
 $global:telegramOffset = 0
-$global:telegramTimeout = 60
+$global:telegramTimeout = 45
 
 . ./common.ps1
+
+if (-not $global:TelegramBotKey) {
+  Write-Host "No telegram bot key found."
+  exit 1 
+}
+
+if (-not $global:TelegramChatId) {
+  Write-Host "No telegram chat found."
+  exit 1
+}
 
 function Read-BotCommands
 {
   try 
-  {
+  {    
     $TelegramUpdateUrl = "$global:TelegramBotUrl/getUpdates?timeout=$global:telegramTimeout&offset=$global:telegramOffset&allowed_updates=['channel_post']"        
-    $response = $(Invoke-RestMethod -ErrorAction:Ignore -Uri $TelegramUpdateUrl)  
+    $response = $(Invoke-RestMethod -ErrorAction:Ignore -Uri $TelegramUpdateUrl)     
   }
   catch 
   {
@@ -64,7 +74,7 @@ function Handle-Command {
   }  
 }
 
-if ($LogFile) 
+ if ($LogFile) 
  {
     New-Item -Path $(Split-Path -Path $LogFile) -ItemType Directory -Force  | Out-Null
     $ErrorActionPreference="SilentlyContinue"
