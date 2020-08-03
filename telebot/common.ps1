@@ -9,8 +9,15 @@ function Reply {
      [string] $ReplyToId
    )
 
-   Log $Message
-   $response = $(Invoke-WebRequest -ErrorAction:Ignore -Uri "$global:TelegramBotUrl/sendMessage?parse_mode=Markdown&chat_id=$ChatId&text=$Message&reply_to_message_id=$ReplyToId")
+   Log "SM: $Message"
+
+  try {
+    $response = $(Invoke-WebRequest -ErrorAction:Ignore -Uri "$global:TelegramBotUrl/sendMessage?parse_mode=Markdown&chat_id=$ChatId&text=$Message&reply_to_message_id=$ReplyToId")
+  } catch {
+    Log "Error sending message."
+    $_.Exception
+  }
+  
 }
 
 function Log {

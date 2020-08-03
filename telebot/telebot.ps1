@@ -7,7 +7,7 @@ param (
 $global:TelegramBotKey = $TelegramBotKey
 $global:TelegramChatId = $TelegramChatId
 $global:telegramOffset = 0
-$global:telegramTimeout = 45
+$global:telegramTimeout = 60
 
 . ./common.ps1
 
@@ -17,7 +17,7 @@ if (-not $global:TelegramBotKey) {
 }
 
 if (-not $global:TelegramChatId) {
-  Write-Host "No telegram chat found."
+  Write-Host "No telegram chat id found."
   exit 1
 }
 
@@ -33,8 +33,8 @@ function Read-BotCommands
       $_.Exception     
       $response =$_.Exception.Response
   }
-
-  if ($response.ok) 
+  
+  if ($response.ok -and $response.result -and $response.result.Length) 
   {
     $response.result | ForEach-Object -Process {
       $result = $_ 
@@ -42,15 +42,15 @@ function Read-BotCommands
       if ($result.update_id -ge $global:telegramOffset) 
       {
           $global:telegramOffset = $result.update_id + 1          
+          Log "New Telegram Offset: $global:telegramOffset"
       }
     
-
-      if ($result.channel_post.chat.id -ne $global:TelegramChatId) {
-         Reply -Message "You are not my master MF!" -ChatId $result.channel_post.chat.id  -ReplyToId $result.channel_post.message_id 
-      } else {
+      if ($result.channel_post -and $result.channel_post.chat.id -eq $global:TelegramChatId) {
         $result.channel_post
-      }
+      } 
     }      
+  } else {
+    Log "Response has no messages: $response"
   }
 }
 
@@ -62,16 +62,23 @@ function Handle-Command {
     Log "Handling Command '$($command.text)'"
     try {
       $messageId = $command.message_id
+      
       $command = $command.text.Split(" ", 2)
       $params = $command[1]
-      $command = $command[0] -Replace '[\W]', ''
-      Invoke-Expression -ErrorAction:Ignore  -Command "./telebot-commands/$command.ps1 -Params ""$params"" -MessageId $messageId" | Out-Null
-    } catch  {
-      Reply -Message "Error executing command '$command'" 
-      Log "Error executing command '$command': $_" 
+      $commandName = $command[0] -Replace '[\W]', ''
+      $command = "./telebot-commands/$commandName.ps1"
+
+      if (Test-Path $command -PathType leaf) {
+        Invoke-Expression -ErrorAction:Ignore  -Command "$command -Params ""$params"" -MessageId $messageId" | Out-Null
+      } else {
+          Reply -Message "Unknown command '$commandName'" -ReplyToId $messageId
+      }
+    } catch  {      
+      Reply -Message "Error executing command '$commandName'" -ReplyToId $messageId
+      Log "Error executing command '$commandName': $_" 
       return
     }
-  }  
+  }
 }
 
  if ($LogFile) 
@@ -87,7 +94,7 @@ Reply "Telebot started."
 try {  
   while ($true) 
   {  
-    Read-BotCommands | Where-Object {$_} | Handle-Command
+    Read-BotCommands | Handle-Command
     Start-Sleep 1
   }
 } finally {
