@@ -71,16 +71,8 @@ function Close-Process {
   if ($process) 
   {
       Log "Clossing $procTitle."
-      if (-not $process.CloseMainWindow()) 
-      {
-          Stop-Process $obsPrprocessocess
-      }
       
-      $count = 0;
-      while (($process = $(Get-Process -ErrorAction:Ignore $procName)) -and $count -le 5) {
-          Start-Sleep 1
-          $count = $count + 1
-      }
+      $process = Terminate-Process-Wait $process
 
       if ($process) {
           Reply -Message "$procTitle is still running." -ReplyToId $messageId
@@ -91,6 +83,23 @@ function Close-Process {
   else {
       Reply -Message "$procTitle is not running." -ReplyToId $messageId
   }
+}
+
+function Terminate-Process-Wait {
+  param($process)
+
+  if (-not $process.CloseMainWindow()) 
+  {
+      Stop-Process $process
+  }
+  
+  $count = 0;
+  while (($process = $(Get-Process -ErrorAction:Ignore $process.ProcessName)) -and $count -le 5) {
+      Start-Sleep 1
+      $count = $count + 1
+  }
+
+  return $process
 }
 
 
@@ -110,4 +119,27 @@ function Is-Process-Running {
   {
       Reply -Message "$procTitle is NOT running." -ReplyToId $messageId
   }
+}
+
+$pidFile = "$HOME/.hmsoft/telebot.pid"
+
+function Write-PID {
+  New-Item -Path $(Split-Path -Path $pidFile) -ItemType Directory -Force -ErrorAction:Ignore | Out-Null
+  Set-Content -Path $pidFile -Value $PID -ErrorAction:Ignore   
+}
+
+function Delete-PID {
+  Remove-Item $pidFile -ErrorAction:Ignore
+}
+
+function Find-Running-Instance {  
+  $runningPid = Get-Content -Path $pidFile  -ErrorAction:Ignore
+  if ($runningPid) {
+    $process = Get-Process -Id $runningPid  -ErrorAction:Ignore
+    if ($process -and $process.ProcessName -and $process.ProcessName -in "pwsh", "powershell" ) {        
+      return $process
+    }
+  }
+
+  return $null
 }

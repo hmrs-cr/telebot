@@ -6,6 +6,26 @@ param (
     [String] $TelegramChatId = $ENV:TELEGRAM_NOTIF_CHAT_ID
  )
 
+ $pidFile = "$HOME/.hmsoft/gc-move.pid"
+
+ function Log {
+    param (
+       [string] $msg
+    )
+    $dt = $(Get-Date)
+    "$($dt.ToString('yyyy-MM-dd HH:mm:ss')) $msg"
+}
+
+
+ $runningPid = Get-Content -Path $pidFile  -ErrorAction:Ignore
+ if ($runningPid) {
+   $process = Get-Process -Id $runningPid  -ErrorAction:Ignore
+   if ($process -and $process.ProcessName -and $process.ProcessName -in "pwsh", "powershell" ) {        
+     Log "Script already running."
+     exit 1
+   }
+ }
+
  if ($LogFile) 
  {
     New-Item -Path $(Split-Path -Path $LogFile) -ItemType Directory -Force  | Out-Null
@@ -16,14 +36,6 @@ param (
  }
 
  $MAX_FILE_SIZE=9000000000
-
- function Log {
-     param (
-        [string] $msg
-     )
-     $dt = $(Get-Date)
-     "$($dt.ToString('yyyy-MM-dd HH:mm:ss')) $msg"
- }
 
  Function Format-FileSize() {
     param ([long]$size)
@@ -44,6 +56,9 @@ if (-not $DestinationFolder) {
     "Please enter a destination folder"
     exit 1
 }
+
+New-Item -Path $(Split-Path -Path $pidFile) -ItemType Directory -Force -ErrorAction:Ignore | Out-Null
+Set-Content -Path  $pidFile -Value $PID -ErrorAction:Ignore
 
 do 
 {
@@ -145,4 +160,5 @@ $telegramText
 "----------------------------------------------------------------"
 ""
 
+Remove-Item $pidFile -ErrorAction:Ignore
 Stop-Transcript

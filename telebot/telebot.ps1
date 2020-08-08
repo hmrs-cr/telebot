@@ -1,6 +1,7 @@
 param (     
   [String] $TelegramBotKey = $ENV:TELEGRAM_NOTIF_BOT_KEY,
   [String] $TelegramChatId = $ENV:TELEGRAM_NOTIF_CHAT_ID,
+  [Switch] $KillExistingInstance,
   [String] $LogFile = "logs/$($(Get-Date).ToString('yyyyMMddHHmmss')).telebot.log"
 )
 
@@ -81,14 +82,27 @@ function Handle-Command {
   }
 }
 
- if ($LogFile) 
- {
+$instance = Find-Running-Instance
+if ($instance) {
+  if ($KillExistingInstance) {
+    Log "Script already running. Killing running instance."
+    Terminate-Process-Wait $instance | Out-Null
+  } else {
+    Log "Script already running. Use -KillExistingInstance to kill running instance and start a new one."
+    exit 1
+  }
+}
+
+Write-PID
+
+if ($LogFile) 
+{
     New-Item -Path $(Split-Path -Path $LogFile) -ItemType Directory -Force  | Out-Null
     $ErrorActionPreference="SilentlyContinue"
     Stop-Transcript -ErrorAction:Ignore | Out-Null    
     $ErrorActionPreference = "Continue"
     Start-Transcript -Path $LogFile -Append
- }
+}
 
 Reply "Telebot started."
 try {  
@@ -99,7 +113,7 @@ try {
   }
 } finally {
   Reply "Telebot terminated"
-
+  Delete-PID
   $ErrorActionPreference="SilentlyContinue"
   Stop-Transcript
 }
