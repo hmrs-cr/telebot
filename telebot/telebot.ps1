@@ -59,7 +59,7 @@ function Handle-Command {
   [CmdletBinding()]
   param([Parameter(ValueFromPipeline)]$command)
   
-  if ($command) {
+  if ($command -and $command.text) {
     Log "Handling Command '$($command.text)'"
     try {
       $messageId = $command.message_id
