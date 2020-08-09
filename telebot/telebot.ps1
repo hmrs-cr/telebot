@@ -27,7 +27,7 @@ function Read-BotCommands
   try 
   {    
     $TelegramUpdateUrl = "$global:TelegramBotUrl/getUpdates?timeout=$global:telegramTimeout&offset=$global:telegramOffset&allowed_updates=['channel_post']"        
-    $response = $(Invoke-RestMethod -ErrorAction:Ignore -Uri $TelegramUpdateUrl)     
+    $response = $(Invoke-RestMethod -ErrorAction:Ignore -Uri $TelegramUpdateUrl -TimeoutSec 120)     
   }
   catch 
   {
