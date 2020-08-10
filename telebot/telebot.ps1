@@ -24,13 +24,17 @@ if (-not $global:TelegramChatId) {
 
 function Read-BotCommands
 {
+  Debug "Read-BotCommands Start"
   try 
   {    
-    $TelegramUpdateUrl = "$global:TelegramBotUrl/getUpdates?timeout=$global:telegramTimeout&offset=$global:telegramOffset&allowed_updates=['channel_post']"        
-    $response = $(Invoke-RestMethod -ErrorAction:Ignore -Uri $TelegramUpdateUrl -TimeoutSec 120)     
+    Debug "getUpdates Start"
+    $TelegramUpdateUrl = "$global:TelegramBotUrl/getUpdates?timeout=$global:telegramTimeout&offset=$global:telegramOffset&allowed_updates=['channel_post']"            
+    $response = $(Invoke-RestMethod -ErrorAction:Ignore -Uri $TelegramUpdateUrl -TimeoutSec $global:telegramTimeout)     
+    Debug "getUpdates End"
   }
   catch 
   {
+    Debug "getUpdates (Exception) End"
       $_.Exception     
       $response =$_.Exception.Response
   }
@@ -53,11 +57,15 @@ function Read-BotCommands
   } else {
     Log "Response has no messages: $response"
   }
+
+  Debug "Read-BotCommands End"
 }
 
-function Handle-Command {
+function Handle-Command {  
   [CmdletBinding()]
   param([Parameter(ValueFromPipeline)]$command)
+
+  Debug "Handle-Command Start"
   
   if ($command -and $command.text) {
     Log "Handling Command '$($command.text)'"
@@ -80,6 +88,8 @@ function Handle-Command {
       return
     }
   }
+
+  Debug "Handle-Command End"
 }
 
 $instance = Find-Running-Instance
@@ -108,7 +118,9 @@ Reply "Telebot started."
 try {  
   while ($true) 
   {  
+    Debug "Loop Start" 
     Read-BotCommands | Handle-Command
+    Debug "Loop End"
     Start-Sleep 1
   }
 } finally {

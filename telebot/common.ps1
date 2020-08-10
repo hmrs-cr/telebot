@@ -22,10 +22,19 @@ function Reply {
 
 function Log {
   param (
-     [string] $msg
+     [string] $Msg
   )
   $dt = $(Get-Date)
   Write-Host "$($dt.ToString('yyyy-MM-dd HH:mm:ss')) : $msg"
+}
+
+function Debug {
+  param (
+     [string] $Msg
+  )
+  $VerbosePreference = 'Continue'
+  $dt = $(Get-Date)
+  Write-Verbose "$($dt.ToString('yyyy-MM-dd HH:mm:ss')) : $msg"
 }
 
 function Execute-Process {
