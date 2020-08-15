@@ -26,9 +26,11 @@ param (
    }
  }
 
+ "LogFile '$LogFile'"
+
  if ($LogFile) 
  {
-    New-Item -Path $(Split-Path -Path $LogFile) -ItemType Directory -Force  | Out-Null
+    New-Item -Path $(Split-Path -Path "$LogFile") -ItemType Directory -Force  | Out-Null
     $ErrorActionPreference="SilentlyContinue"
     Stop-Transcript -ErrorAction:Ignore | Out-Null    
     $ErrorActionPreference = "Continue"
@@ -159,6 +161,13 @@ if ($TelegramBotKey -and $TelegramChatId)
 $telegramText
 "----------------------------------------------------------------"
 ""
+
+$gSyncProcName = "googledrivesync"
+$gSyncPath = "C:\Program Files\Google\Drive\$gSyncProcName.exe"
+if (-not $(Get-Process -ErrorAction:Ignore $gSyncProcName)) {
+    Log "Starting gSync"
+    Start-Process -FilePath $gSyncPath -WorkingDirectory $(Split-Path -Path $gSyncPath)
+}
 
 Remove-Item $pidFile -ErrorAction:Ignore
 Stop-Transcript
